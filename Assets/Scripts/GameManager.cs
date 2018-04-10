@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour {
 
 	public int TargetScore = 5;			//目标分数
 	public enum GameState 				//游戏状态枚举
-	{Playing,GameOver,Winning};
+	{Playing,GameOver,Winning, Pause};
 	public GameState gameState;			//游戏状态
 	public GameObject player;			//游戏主角
 
@@ -23,6 +23,10 @@ public class GameManager : MonoBehaviour {
 	public AudioClip gameOverAudio;				//游戏失败音效
 	public GameObject gameResultCanvas;			//游戏结果Canvas
 	public GameObject mobileControlRigCanvas;	//移动端控制UI
+
+	public GameObject pausePanel;
+	public GameObject optionPanel;
+	public Toggle soundToggle;				//声音开关
 
 	public GameObject firstUserText;	//排名第一的玩家信息
 	public GameObject secondUserText;	//排名第二的玩家信息
@@ -59,6 +63,7 @@ public class GameManager : MonoBehaviour {
 		audioListener = GameObject.FindGameObjectWithTag ("MainCamera").GetComponent<AudioListener> ();
 
 		gm.gameState = GameState.Playing;	//游戏状态设置为游戏进行中
+		Time.timeScale = 1;
 		currentScore = 0;					//当前得分初始化为0
 		startTime = Time.time;				//记录场景加载的时刻
 
@@ -71,8 +76,10 @@ public class GameManager : MonoBehaviour {
 
 		playingCanvas.SetActive (true);		//启用游戏进行中Canvas
 		gameResultCanvas.SetActive(false);	//禁用游戏结果Canvas
+		pausePanel.SetActive(false);
+		optionPanel.SetActive (false);
 
-		if(PlayerPrefs.GetString("Username")=="")	//若玩家未输入姓名，则将其姓名改为无名英雄
+		if(PlayerPrefs.GetString("Username")=="")	//若玩家未输入姓名，则将其姓名改为traveller
 			PlayerPrefs.SetString("Username","Traveller");
 		//从本地保存的数据中获取前三名信息
 		if (PlayerPrefs.GetString ("FirstUser") != "") {
@@ -88,7 +95,7 @@ public class GameManager : MonoBehaviour {
 		} else
 			thirdUserData = new UserData ();
 		//根据GameStart场景中的声音设置，控制本场景中AudioListener的启用与禁用
-		audioListener.enabled = (PlayerPrefs.GetInt ("SoundOff") != 1);
+		AudioListener.pause = !(PlayerPrefs.GetInt ("SoundOff") != 1);
 	}
 
 	void Update () {
@@ -145,6 +152,10 @@ public class GameManager : MonoBehaviour {
 				isGameOver = true;
 				EditGameOverCanvas();	//编辑游戏结束Canvas中的排行榜
 			}
+			break;
+		
+		case GameState.Pause:
+			Cursor.visible = true;
 			break;
 		}
 	}
@@ -269,9 +280,54 @@ public class GameManager : MonoBehaviour {
 	public void PlayAgain(){
 		SceneManager.LoadScene("GamePlay");
 	}
+
+	//public void PlayAgain(){
+		
+	//停止游戏场景
+	public void Pause(){
+		gm.gameState = GameState.Pause;
+		playingCanvas.SetActive (false);
+		pausePanel.SetActive (true);
+		Time.timeScale = 0;
+	}
+
+	//恢复游戏场景
+	public void Resume(){
+		gm.gameState = GameState.Playing;
+		Cursor.visible = false;	//禁用鼠标光标
+		Time.timeScale = 1;
+		playingCanvas.SetActive (true);
+		pausePanel.SetActive (false);
+	}
+
 	//加载游戏开始场景
 	public void BackToMain(){
 		SceneManager.LoadScene("GameStart");
 	}
 
+	public void ActiveOptionPanel(){
+		optionPanel.SetActive (true);
+		pausePanel.SetActive (false);
+	}
+
+	public void OptionBack(){
+		optionPanel.SetActive (false);
+		pausePanel.SetActive (true);
+	}
+
+	//“退出”按钮调用的函数
+	public void ExitGame(){
+		Application.Quit ();	//退出游戏
+	}
+
+	//声音开关
+	public void SwitchSound(){
+		if (soundToggle.isOn) {
+			AudioListener.pause = false;
+			PlayerPrefs.SetInt ("SoundOff", 0);
+		} else {
+			AudioListener.pause = true;
+			PlayerPrefs.SetInt ("SoundOff", 1);
+		}
+	}
 }

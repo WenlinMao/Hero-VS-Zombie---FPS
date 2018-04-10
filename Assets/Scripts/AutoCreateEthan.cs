@@ -5,7 +5,7 @@ public class AutoCreateEthan : MonoBehaviour {
 
 	public GameObject createGameObject;		//自动生成的游戏对象
 	public float createTime = 5.0f;	//生成时间，下次以生成游戏对象的时间
-	public float createDist = 40;
+	public float createDist = 40;	//生成距离，下次生成游戏对象的最大距离
 
 	private float timer;		//生成时间间隔，记录从上次生成游戏对象到现在经过的时间
 
